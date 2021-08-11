@@ -1,5 +1,8 @@
 Envoy ratelimiter demo
 
+Rate limiting globally via GRPC for istio 1.7.8 / envoy 1.15.4
+todo:// add local ratelimiter example
+
 ```
 # fyi I am using python 3.9.6 and assume you have some sort of local kubernetes setup, or have access to EKS, etc. I also assume you have some working knowledge of kubernetes and istio/envoy.
 
@@ -80,5 +83,32 @@ so you must dpctl pip-login first then:
 <
   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
 * Connection #0 to host pyserver left intact
+
+
+# to get metrics
+> kubectl get -n ratelimiter
+NAME                         READY   STATUS    RESTARTS   AGE
+pyserver-5748b6d6c7-6wffr    2/2     Running   0          6m49s
+ratelimit-57ffc99799-5m2vk   2/2     Running   2          14m
+redis-7d757c948f-r8zg8       2/2     Running   0          14m
+sleep-6bcb59b5bf-dgpwm       2/2     Running   0          6m49s
+
+# the following stats are candidates to track
+❯ kubectl exec sleep-6bcb59b5bf-dgpwm   -n ratelimiter -c istio-proxy -- pilot-agent request GET stats | grep pyserver      
+...
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_200: 11
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_2xx: 11
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_429: 208
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_4xx: 208
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_active: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_cancelled: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_completed: 219
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_maintenance_mode: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_max_duration_reached: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_pending_active: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_pending_failure_eject: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_pending_overflow: 0
+cluster.outbound|80||pyserver.ratelimiter.svc.cluster.local.upstream_rq_pending_total: 2
+...
 
 ```
