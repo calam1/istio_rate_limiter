@@ -1,6 +1,6 @@
 Envoy ratelimiter demo
 
-Rate limiting globally via GRPC for istio 1.7.8 / envoy 1.15.4
+Rate limiting globally via GRPC for istio 1.7.8
 todo:// add local ratelimiter example
 
 ```
